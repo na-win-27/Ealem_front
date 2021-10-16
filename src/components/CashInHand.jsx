@@ -2,9 +2,9 @@ import React from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { Container } from "@mui/material";
-const CashInHand = () => {
-  const [cash, setCash] = React.useState(600000000);
-  const formattedCash = cash / 10000000;
+const CashInHand = (props) => {
+  
+  const formattedCash = props.cash / 10000000;
   return (
     <Box
       display="flex"
