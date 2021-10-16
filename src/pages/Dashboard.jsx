@@ -8,8 +8,7 @@ import { Container, Grid, Paper } from "@mui/material";
 import BidStatus from "../components/BidStatus";
 import CashInHand from "../components/CashInHand";
 import PlayerCard from "../components/PlayerCard";
-
-
+import PlayerBought from "../components/PlayerBought";
 
 const Dashboard = () => {
   const mdTheme = createTheme();
@@ -17,6 +16,7 @@ const Dashboard = () => {
     <ThemeProvider theme={mdTheme}>
       <Box
         sx={{
+          mt: 4,
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
@@ -39,7 +39,7 @@ const Dashboard = () => {
       <Box>
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={8} lg={4}>
+            <Grid item xs={12} md={6} lg={4}>
               <Paper
                 sx={{
                   p: 2,
@@ -51,8 +51,8 @@ const Dashboard = () => {
                 <BidStatus />
               </Paper>
             </Grid>
-            
-            <Grid item xs={12} md={4} lg={5}>
+
+            <Grid item xs={12} md={6} lg={5}>
               <Paper
                 sx={{
                   p: 2,
@@ -71,13 +71,33 @@ const Dashboard = () => {
                   height: 240,
                 }}
               >
-                <CashInHand/>
+                <CashInHand />
               </Paper>
             </Grid>
 
             <Grid item xs={12}>
-              <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
-                players bought
+              <Paper sx={{ p: 2 }}>
+                <Container>
+                  <Typography
+                    variant="h5"
+                    style={{ fontWeight: 600 }}
+                    textStyle="bold"
+                    align="center"
+                    gutterBottom
+                  >
+                    Player's Bought
+                  </Typography>
+                </Container>
+                <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                  <Grid container>
+                    <PlayerBought />
+                    <PlayerBought />
+                    <PlayerBought />
+                    <PlayerBought />
+                    <PlayerBought />
+                    <PlayerBought />
+                  </Grid>
+                </Container>
               </Paper>
             </Grid>
           </Grid>
