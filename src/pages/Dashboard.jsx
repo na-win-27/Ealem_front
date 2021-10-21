@@ -1,6 +1,11 @@
 import React from "react";
-import {  createTheme, ThemeProvider } from "@mui/material/styles";
-import { INCREASE_BID,DECREASE_CASH,PLAYER_BOUGHT } from "../static/actionTypes";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import {
+  INCREASE_BID,
+  DECREASE_CASH,
+  PLAYER_BOUGHT,
+  RESET_BID,
+} from "../static/actionTypes";
 import CssBaseline from "@mui/material/CssBaseline";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -12,35 +17,83 @@ import PlayerCard from "../components/PlayerCard";
 import PlayerBought from "../components/PlayerBought";
 import Modal from "@mui/material/Modal";
 import Button from "@mui/material/Button";
-import { connect } from 'react-redux';
+import { connect } from "react-redux";
+import io from "socket.io-client";
 
+const ENDPOINT = "http://localhost:8000";
 
-const mapStateToProps = state => {
+let socket;
+
+const mapStateToProps = (state) => {
   return {
-   cash:state.cash,
-   bid:state.bid,
-   PlayerBought:state.PlayerBought,
-  }};
+    cash: state.cash,
+    bid: state.bid,
+    PlayerBought: state.PlayerBought,
+  };
+};
 
-  const mapDispatchToProps = dispatch => ({
-    incBid: () =>
-      dispatch({ type: INCREASE_BID}),
-  });
-  
+const mapDispatchToProps = (dispatch) => ({
+  incBid: () => dispatch({ type: INCREASE_BID }),
+  resBid:()=>dispatch({ type:RESET_BID }),
+  decCash:() => dispatch({ type: PLAYER_BOUGHT})
+});
+
+var connectionOptions = {
+  "force new connection": true,
+  reconnectionAttempts: "Infinity",
+  timeout: 10000,
+  transports: ["websocket"],
+};
+
 const Dashboard = (props) => {
   const mdTheme = createTheme();
   const [open, setOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    socket = io(ENDPOINT, connectionOptions);
+    socket.emit("join", { name: "navin", room: "272001" }, (error) => {
+      if (error) {
+        alert(error);
+      }
+    });
+  }, [ENDPOINT]);
+
+  React.useEffect(() => {
+    socket.on("message", (message) => {
+      console.log(message);
+    });
+    socket.on("won",async (message) => {
+      console.log(message);
+      if(message.winner=="ME"){
+        props.decCash();
+      }
+      props.resBid();
+      const response=await fetch('https://api.github.com/users/na-win-27');
+      console.log(response);
+      setHigh(false);
+    });
+    socket.on("bidIncrement", () => {
+      props.incBid();
+      setHigh(false);
+    });
+  }, []);
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-  const placeBid=() => {
-    props.incBid(2000000);
+  const [high, setHigh] = React.useState(false);
+  const placeBid = () => {
+    socket.emit("placeBid", props.bid, () => {
+      console.log("cb");
+      props.incBid();
+      setHigh(true);
+    });
     setOpen(false);
-  }
-  const cancelBid=() => {
+  };
+  const cancelBid = () => {
     console.log("redux acrion");
     setOpen(false);
-  }
-  
+  };
+
   return (
     <ThemeProvider theme={mdTheme}>
       <Modal
@@ -50,11 +103,17 @@ const Dashboard = (props) => {
         aria-describedby="modal-modal-description"
       >
         <Box display="flex" sx={{ mt: 25 }} justifyContent="center">
-          <Paper maxWidth="50%">
-            <Typography variant="h4">Are you sure you want to Place This Bid??</Typography>
-            <Box sx={{mt:5}} display="flex" justifyContent="center">
-              <Button onClick={placeBid} sx={{mr:5}}><h2>Yes</h2></Button>
-              <Button onClick={cancelBid} sx={{mr:5}}><h2>No</h2></Button>
+          <Paper>
+            <Typography variant="h4">
+              {high?"You are already The highest Bidder":"Are you sure you want to Place the Bid"}
+            </Typography>
+            <Box sx={{ mt: 5 }} display="flex" justifyContent="center">
+              <Button disabled={high} onClick={placeBid} sx={{ mr: 5 }}>
+                <h2>Yes</h2>
+              </Button>
+              <Button onClick={cancelBid} sx={{ mr: 5 }}>
+                <h2>No</h2>
+              </Button>
             </Box>
           </Paper>
         </Box>
@@ -94,6 +153,7 @@ const Dashboard = (props) => {
                 }}
               >
                 <BidStatus handleOpen={handleOpen} bid={props.bid} />
+                {high ? <p>High</p> : <p>Bid More</p>}
               </Paper>
             </Grid>
 
@@ -116,7 +176,7 @@ const Dashboard = (props) => {
                   height: 240,
                 }}
               >
-                <CashInHand  cash={props.cash}/>
+                <CashInHand cash={props.cash} />
               </Paper>
             </Grid>
 
